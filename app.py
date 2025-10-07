@@ -6,79 +6,84 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Streamlit page configuration
 st.set_page_config(page_title="Weather Data Dashboard", layout="wide")
 
-# App title
-st.title("🌦️ Weather Data Analysis & Forecasting Dashboard")
+# -----------------------------
+# Title and Description
+# -----------------------------
+st.title("🌤️ Weather Data Analysis & Forecasting Dashboard")
 st.markdown("""
 Explore and forecast weather patterns using regression analysis.  
 Upload your dataset, visualize insights, and predict future trends 📈.
 """)
 
-# File uploader
+# -----------------------------
+# File Upload
+# -----------------------------
 uploaded_file = st.file_uploader("📂 Upload your weather dataset (.csv)", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
+    
     st.success("✅ File uploaded successfully!")
-
-    # Show dataset preview
     st.subheader("📋 Dataset Overview")
-    st.dataframe(df.head(), use_container_width=True)
+    st.write(df.head())
 
-    # Basic info
+    # Dataset Info
     st.markdown("### 🔍 Basic Information")
     st.write(f"**Rows:** {df.shape[0]} | **Columns:** {df.shape[1]}")
-    st.write("**Columns:**", list(df.columns))
-
+    st.write("**Column Names:**", list(df.columns))
+    
+    # Missing values
     st.markdown("### ⚠️ Missing Values")
     st.write(df.isnull().sum())
 
+    # -----------------------------
+    # Summary Statistics
+    # -----------------------------
     st.markdown("### 📊 Statistical Summary")
     st.write(df.describe())
 
-    # Visualization
+    # -----------------------------
+    # Visualization Section
+    # -----------------------------
     st.markdown("## 📈 Data Visualizations")
 
     numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
 
     if len(numeric_cols) > 0:
-        col1, col2 = st.columns(2)
-        with col1:
-            x_col = st.selectbox("Select X-axis", numeric_cols, key="vis_x")
-        with col2:
-            y_col = st.selectbox("Select Y-axis", numeric_cols, key="vis_y")
+        st.markdown("### 🔹 Select Columns for Visualization")
+        x_col = st.selectbox("Select X-axis", numeric_cols, key="vis_x")
+        y_col = st.selectbox("Select Y-axis", numeric_cols, key="vis_y")
 
-        # Line Chart
+        # Line Plot
         st.markdown("#### 📉 Line Chart")
         fig, ax = plt.subplots(figsize=(6, 3))
-        ax.plot(df[x_col], df[y_col], color='orange', linewidth=1)
-        ax.set_xlabel(x_col, fontsize=8)
-        ax.set_ylabel(y_col, fontsize=8)
+        ax.plot(df[x_col], df[y_col], color='orange')
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
         ax.set_title(f"{y_col} vs {x_col}", fontsize=10)
-        plt.tight_layout()
-        st.pyplot(fig, use_container_width=True, clear_figure=True)
+        st.pyplot(fig, clear_figure=True)
 
         # Scatter Plot
         st.markdown("#### 🔸 Scatter Plot")
-        fig, ax = plt.subplots(figsize=(6, 3))
+        fig, ax = plt.subplots(figsize=(5, 3))
         sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax, s=25)
         ax.set_title("Scatter Plot", fontsize=10)
-        plt.tight_layout()
-        st.pyplot(fig, use_container_width=True, clear_figure=True)
+        st.pyplot(fig, clear_figure=True)
 
-        # Heatmap
+        # Correlation Heatmap
         st.markdown("#### 🔥 Correlation Heatmap")
-        fig, ax = plt.subplots(figsize=(6, 3))
-        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax, annot_kws={"size": 7})
+        fig, ax = plt.subplots(figsize=(6, 4))
+        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax, annot_kws={"size": 6})
         ax.set_title("Correlation Heatmap", fontsize=10)
-        plt.tight_layout()
-        st.pyplot(fig, use_container_width=True, clear_figure=True)
+        st.pyplot(fig, clear_figure=True)
     else:
         st.warning("⚠️ No numeric columns found for plotting.")
 
-    # Regression Forecasting
+    # -----------------------------
+    # Forecasting Section
+    # -----------------------------
     st.markdown("## 🤖 Weather Trend Forecasting (Regression Model)")
     st.markdown("""
     Select the **feature (X)** and **target (Y)** for regression prediction.  
@@ -93,12 +98,17 @@ if uploaded_file is not None:
             X = df[[feature_col]].values
             y = df[target_col].values
 
+            # Split Data
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+            # Train Model
             model = LinearRegression()
             model.fit(X_train, y_train)
+
+            # Predictions
             y_pred = model.predict(X_test)
 
+            # Metrics
             mse = mean_squared_error(y_test, y_pred)
             r2 = r2_score(y_test, y_pred)
 
@@ -106,20 +116,19 @@ if uploaded_file is not None:
             st.write(f"**Mean Squared Error:** {mse:.2f}")
             st.write(f"**R² Score:** {r2:.2f}")
 
-            # Actual vs Predicted Plot
+            # Plot Predictions
             st.markdown("### 📊 Actual vs Predicted")
             fig, ax = plt.subplots(figsize=(6, 3))
             ax.scatter(X_test, y_test, color='blue', label='Actual', s=25)
-            ax.plot(X_test, y_pred, color='red', linewidth=1.5, label='Predicted')
-            ax.set_xlabel(feature_col, fontsize=8)
-            ax.set_ylabel(target_col, fontsize=8)
-            ax.legend(fontsize=7)
-            plt.tight_layout()
-            st.pyplot(fig, use_container_width=True, clear_figure=True)
+            ax.plot(X_test, y_pred, color='red', linewidth=2, label='Predicted')
+            ax.set_xlabel(feature_col)
+            ax.set_ylabel(target_col)
+            ax.legend(fontsize=8)
+            st.pyplot(fig, clear_figure=True)
 
-            # Future Prediction
+            # Trend Forecast
             st.markdown("### 🔮 Future Trend Prediction")
-            future_val = st.number_input(f"Enter future {feature_col} value:", value=float(df[feature_col].mean()))
+            future_val = st.number_input(f"Future {feature_col} value:", value=float(df[feature_col].mean()))
             future_pred = model.predict([[future_val]])[0]
             st.write(f"**Predicted {target_col} for {feature_col} = {future_val}: {future_pred:.2f}")
     else:
