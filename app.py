@@ -58,24 +58,26 @@ if uploaded_file is not None:
 
         # Line Plot
         st.markdown("#### 📉 Line Chart")
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(6, 3))
         ax.plot(df[x_col], df[y_col], color='orange')
         ax.set_xlabel(x_col)
         ax.set_ylabel(y_col)
-        ax.set_title(f"{y_col} vs {x_col}")
-        st.pyplot(fig)
+        ax.set_title(f"{y_col} vs {x_col}", fontsize=10)
+        st.pyplot(fig, clear_figure=True)
 
         # Scatter Plot
         st.markdown("#### 🔸 Scatter Plot")
-        fig, ax = plt.subplots()
-        sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax)
-        st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(5, 3))
+        sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax, s=25)
+        ax.set_title("Scatter Plot", fontsize=10)
+        st.pyplot(fig, clear_figure=True)
 
         # Correlation Heatmap
         st.markdown("#### 🔥 Correlation Heatmap")
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax)
-        st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(6, 4))
+        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax, annot_kws={"size": 6})
+        ax.set_title("Correlation Heatmap", fontsize=10)
+        st.pyplot(fig, clear_figure=True)
     else:
         st.warning("⚠️ No numeric columns found for plotting.")
 
@@ -116,13 +118,13 @@ if uploaded_file is not None:
 
             # Plot Predictions
             st.markdown("### 📊 Actual vs Predicted")
-            fig, ax = plt.subplots()
-            ax.scatter(X_test, y_test, color='blue', label='Actual')
+            fig, ax = plt.subplots(figsize=(6, 3))
+            ax.scatter(X_test, y_test, color='blue', label='Actual', s=25)
             ax.plot(X_test, y_pred, color='red', linewidth=2, label='Predicted')
             ax.set_xlabel(feature_col)
             ax.set_ylabel(target_col)
-            ax.legend()
-            st.pyplot(fig)
+            ax.legend(fontsize=8)
+            st.pyplot(fig, clear_figure=True)
 
             # Trend Forecast
             st.markdown("### 🔮 Future Trend Prediction")
