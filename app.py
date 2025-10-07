@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
 # Streamlit page configuration
-st.set_page_config(page_title="Weather Data Dashboard", layout="centered")  # centered layout helps too
+st.set_page_config(page_title="Weather Data Dashboard", layout="centered")  # keep centered
 
 # App title
 st.title("🌦️ Weather Data Analysis & Forecasting Dashboard")
@@ -50,9 +50,9 @@ if uploaded_file is not None:
         with col2:
             y_col = st.selectbox("Select Y-axis", numeric_cols, key="vis_y")
 
-        # Standard figure size
-        FIGSIZE = (4, 3)   # fixed width x height
-        DPI = 100          # resolution
+        # Standard figure size for line & scatter
+        FIGSIZE = (4, 3)
+        DPI = 100
 
         # Line Chart
         st.markdown("#### 📉 Line Chart")
@@ -72,13 +72,23 @@ if uploaded_file is not None:
         plt.tight_layout()
         st.pyplot(fig, clear_figure=True)
 
-        # Heatmap
+        # Heatmap (fixed size + smaller font)
         st.markdown("#### 🔥 Correlation Heatmap")
-        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
-        sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax, annot_kws={"size": 6})
-        ax.set_title("Correlation Heatmap", fontsize=9)
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=100)  # bigger heatmap
+        sns.heatmap(
+            df[numeric_cols].corr(),
+            annot=True,
+            cmap="coolwarm",
+            ax=ax,
+            annot_kws={"size": 7},   # smaller annotation text
+            cbar_kws={"shrink": 0.7} # shrink colorbar
+        )
+        ax.set_title("Correlation Heatmap", fontsize=10)
+        plt.xticks(fontsize=7)
+        plt.yticks(fontsize=7)
         plt.tight_layout()
         st.pyplot(fig, clear_figure=True)
+
     else:
         st.warning("⚠️ No numeric columns found for plotting.")
 
