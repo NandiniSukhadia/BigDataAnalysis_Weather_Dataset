@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
 # Streamlit page configuration
-st.set_page_config(page_title="Weather Data Dashboard", layout="wide")
+st.set_page_config(page_title="Weather Data Dashboard", layout="centered")  # centered layout helps too
 
 # App title
 st.title("🌦️ Weather Data Analysis & Forecasting Dashboard")
@@ -50,9 +50,13 @@ if uploaded_file is not None:
         with col2:
             y_col = st.selectbox("Select Y-axis", numeric_cols, key="vis_y")
 
+        # Standard figure size
+        FIGSIZE = (4, 3)   # fixed width x height
+        DPI = 100          # resolution
+
         # Line Chart
         st.markdown("#### 📉 Line Chart")
-        fig, ax = plt.subplots(figsize=(5, 2.5))
+        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
         ax.plot(df[x_col], df[y_col], color='orange', linewidth=1)
         ax.set_xlabel(x_col, fontsize=8)
         ax.set_ylabel(y_col, fontsize=8)
@@ -62,7 +66,7 @@ if uploaded_file is not None:
 
         # Scatter Plot
         st.markdown("#### 🔸 Scatter Plot")
-        fig, ax = plt.subplots(figsize=(5, 2.5))
+        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
         sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax, s=20)
         ax.set_title("Scatter Plot", fontsize=9)
         plt.tight_layout()
@@ -70,7 +74,7 @@ if uploaded_file is not None:
 
         # Heatmap
         st.markdown("#### 🔥 Correlation Heatmap")
-        fig, ax = plt.subplots(figsize=(5, 2.5))
+        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
         sns.heatmap(df[numeric_cols].corr(), annot=True, cmap="coolwarm", ax=ax, annot_kws={"size": 6})
         ax.set_title("Correlation Heatmap", fontsize=9)
         plt.tight_layout()
@@ -108,7 +112,7 @@ if uploaded_file is not None:
 
             # Actual vs Predicted Plot
             st.markdown("### 📊 Actual vs Predicted")
-            fig, ax = plt.subplots(figsize=(5, 2.5))
+            fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
             ax.scatter(X_test, y_test, color='blue', label='Actual', s=20)
             ax.plot(X_test, y_pred, color='red', linewidth=1.5, label='Predicted')
             ax.set_xlabel(feature_col, fontsize=8)
