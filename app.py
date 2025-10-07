@@ -147,7 +147,7 @@ Both models are trained and compared:
 
                 fig, ax = plt.subplots(figsize=(6, 3))
                 ax.scatter(X_test, y_test, color='blue', label='Actual', s=25)
-                ax.plot(X_test, y_pred_rf, color='green', linewidth=1.5, label='Predicted")
+                ax.plot(X_test, y_pred_rf, color='green', linewidth=1.5, label='Predicted')  # ✅ fixed line
                 ax.set_title("Random Forest", fontsize=10)
                 ax.set_xlabel(feature_col, fontsize=8)
                 ax.set_ylabel(target_col, fontsize=8)
