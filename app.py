@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
 # Streamlit page configuration
-st.set_page_config(page_title="Weather Data Dashboard", layout="centered")  # keep centered
+st.set_page_config(page_title="Weather Data Dashboard", layout="wide")
 
 # App title
 st.title("🌦️ Weather Data Analysis & Forecasting Dashboard")
@@ -25,7 +26,7 @@ if uploaded_file is not None:
 
     # Show dataset preview
     st.subheader("📋 Dataset Overview")
-    st.dataframe(df.head())
+    st.dataframe(df.head(), use_container_width=True)
 
     # Basic info
     st.markdown("### 🔍 Basic Information")
@@ -50,92 +51,121 @@ if uploaded_file is not None:
         with col2:
             y_col = st.selectbox("Select Y-axis", numeric_cols, key="vis_y")
 
-        # Standard figure size for line & scatter
-        FIGSIZE = (4, 3)
-        DPI = 100
-
         # Line Chart
         st.markdown("#### 📉 Line Chart")
-        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
+        fig, ax = plt.subplots(figsize=(4, 3), dpi=100)
         ax.plot(df[x_col], df[y_col], color='orange', linewidth=1)
         ax.set_xlabel(x_col, fontsize=8)
         ax.set_ylabel(y_col, fontsize=8)
-        ax.set_title(f"{y_col} vs {x_col}", fontsize=9)
+        ax.set_title(f"{y_col} vs {x_col}", fontsize=10)
         plt.tight_layout()
         st.pyplot(fig, clear_figure=True)
 
         # Scatter Plot
         st.markdown("#### 🔸 Scatter Plot")
-        fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
-        sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax, s=20)
-        ax.set_title("Scatter Plot", fontsize=9)
+        fig, ax = plt.subplots(figsize=(4, 3), dpi=100)
+        sns.scatterplot(x=df[x_col], y=df[y_col], ax=ax, s=25)
+        ax.set_title("Scatter Plot", fontsize=10)
         plt.tight_layout()
         st.pyplot(fig, clear_figure=True)
 
-        # Heatmap (fixed size + smaller font)
+        # Heatmap
         st.markdown("#### 🔥 Correlation Heatmap")
-        fig, ax = plt.subplots(figsize=(6, 4), dpi=100)  # bigger heatmap
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
         sns.heatmap(
             df[numeric_cols].corr(),
             annot=True,
             cmap="coolwarm",
             ax=ax,
-            annot_kws={"size": 7},   # smaller annotation text
-            cbar_kws={"shrink": 0.7} # shrink colorbar
+            annot_kws={"size": 7},
+            cbar_kws={"shrink": 0.7}
         )
         ax.set_title("Correlation Heatmap", fontsize=10)
         plt.xticks(fontsize=7)
         plt.yticks(fontsize=7)
         plt.tight_layout()
         st.pyplot(fig, clear_figure=True)
-
     else:
         st.warning("⚠️ No numeric columns found for plotting.")
 
-    # Regression Forecasting
-    st.markdown("## 🤖 Weather Trend Forecasting (Regression Model)")
+    # Forecasting
+    st.markdown("## 🤖 Weather Trend Forecasting (Linear Regression vs Random Forest)")
     st.markdown("""
-    Select the **feature (X)** and **target (Y)** for regression prediction.  
-    Example: Predict *Temperature* using *Humidity* or *Pressure*.
-    """)
+Both models are trained and compared:  
+- **Linear Regression** → simple, interpretable baseline  
+- **Random Forest** → handles non-linear relationships, usually more accurate
+""")
 
     if len(numeric_cols) >= 2:
         feature_col = st.selectbox("Select Feature (X)", numeric_cols, key="model_x")
         target_col = st.selectbox("Select Target (Y)", numeric_cols, key="model_y")
 
-        if st.button("🚀 Train Regression Model"):
+        if st.button("🚀 Train Models"):
             X = df[[feature_col]].values
             y = df[target_col].values
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42
+            )
 
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
+            # --- Linear Regression ---
+            lr_model = LinearRegression()
+            lr_model.fit(X_train, y_train)
+            y_pred_lr = lr_model.predict(X_test)
+            mse_lr = mean_squared_error(y_test, y_pred_lr)
+            r2_lr = r2_score(y_test, y_pred_lr)
 
-            mse = mean_squared_error(y_test, y_pred)
-            r2 = r2_score(y_test, y_pred)
+            # --- Random Forest ---
+            rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+            rf_model.fit(X_train, y_train)
+            y_pred_rf = rf_model.predict(X_test)
+            mse_rf = mean_squared_error(y_test, y_pred_rf)
+            r2_rf = r2_score(y_test, y_pred_rf)
 
-            st.success("✅ Model trained successfully!")
-            st.write(f"**Mean Squared Error:** {mse:.2f}")
-            st.write(f"**R² Score:** {r2:.2f}")
+            # Show results in two columns
+            col1, col2 = st.columns(2)
 
-            # Actual vs Predicted Plot
-            st.markdown("### 📊 Actual vs Predicted")
-            fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
-            ax.scatter(X_test, y_test, color='blue', label='Actual', s=20)
-            ax.plot(X_test, y_pred, color='red', linewidth=1.5, label='Predicted')
-            ax.set_xlabel(feature_col, fontsize=8)
-            ax.set_ylabel(target_col, fontsize=8)
-            ax.legend(fontsize=7)
-            plt.tight_layout()
-            st.pyplot(fig, clear_figure=True)
+            with col1:
+                st.success("✅ Linear Regression Results")
+                st.write(f"**MSE:** {mse_lr:.2f}")
+                st.write(f"**R² Score:** {r2_lr:.2f}")
 
-            # Future Prediction
-            st.markdown("### 🔮 Future Trend Prediction")
-            future_val = st.number_input(f"Future {feature_col} value:", value=float(df[feature_col].mean()))
-            future_pred = model.predict([[future_val]])[0]
-            st.write(f"Predicted {target_col} for {feature_col} = {future_val}: {future_pred:.2f}")
+                fig, ax = plt.subplots(figsize=(6, 3))
+                ax.scatter(X_test, y_test, color='blue', label='Actual', s=25)
+                ax.plot(X_test, y_pred_lr, color='red', linewidth=1.5, label='Predicted')
+                ax.set_title("Linear Regression", fontsize=10)
+                ax.set_xlabel(feature_col, fontsize=8)
+                ax.set_ylabel(target_col, fontsize=8)
+                ax.legend(fontsize=7)
+                plt.tight_layout()
+                st.pyplot(fig, clear_figure=True)
+
+            with col2:
+                st.success("✅ Random Forest Results")
+                st.write(f"**MSE:** {mse_rf:.2f}")
+                st.write(f"**R² Score:** {r2_rf:.2f}")
+
+                fig, ax = plt.subplots(figsize=(6, 3))
+                ax.scatter(X_test, y_test, color='blue', label='Actual', s=25)
+                ax.plot(X_test, y_pred_rf, color='green', linewidth=1.5, label='Predicted")
+                ax.set_title("Random Forest", fontsize=10)
+                ax.set_xlabel(feature_col, fontsize=8)
+                ax.set_ylabel(target_col, fontsize=8)
+                ax.legend(fontsize=7)
+                plt.tight_layout()
+                st.pyplot(fig, clear_figure=True)
+
+            # Future Predictions
+            st.markdown("### 🔮 Future Predictions")
+            future_val = st.number_input(
+                f"Future {feature_col} value:", value=float(df[feature_col].mean())
+            )
+            future_pred_lr = lr_model.predict([[future_val]])[0]
+            future_pred_rf = rf_model.predict([[future_val]])[0]
+
+            st.write(f"**Linear Regression → Predicted {target_col}: {future_pred_lr:.2f}**")
+            st.write(f"**Random Forest → Predicted {target_col}: {future_pred_rf:.2f}**")
+
     else:
         st.warning("⚠️ Need at least two numeric columns for regression.")
 else:
